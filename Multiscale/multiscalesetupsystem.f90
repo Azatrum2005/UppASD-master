@@ -375,6 +375,23 @@ contains
     
      call allocate_hamiltoniandata(Natom, 1, Natom,1,ubound(ncoupTmp, 1), 0, 'N', 1, 'N','N')
 
+     ! Initialise the brute-force dipole tensor explicitly.
+      if (ham_inp%do_dip == 1) then
+
+         if (allocated(ham%Qdip)) call allocate_dipole(flag=-1)
+
+         call allocate_dipole(natom_atomistic, 1)
+
+         call setup_qdip(natom_atomistic, coord(:,1:natom_atomistic), alat, &
+            ham%Qdip, simid, ham_inp%print_dip_tensor)
+
+         write(*,'(a,4(i0,1x))') 'Dipolar tensor dimensions: ', size(ham%Qdip,1), size(ham%Qdip,2), &
+                                                               size(ham%Qdip,3), size(ham%Qdip,4)
+
+      else if (ham_inp%do_dip > 1) then
+         error stop 'Multiscale setup currently supports only do_dip=1'
+
+      end if
 
     ham%ncoup = ncoupTmp
     ham%nlistsize = nlistsizeTmp
