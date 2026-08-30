@@ -313,7 +313,7 @@ contains
       use KMC
       use QHB,                   only : qhb_rescale
       use BLS,                   only : calc_bls
-      use Energy,                only : calc_energy
+      use Energy,                only : calc_energy, update_ene
       use Sparse
       use Damping
       use KMCData
@@ -352,6 +352,7 @@ contains
       use Multiscale,                 only : natom_atomistic  
       use MultiscaleDampingBand
       use MultiscaleInterpolation
+      use DipoleManager,              only : dipole_field_calculation
 
       implicit none
       logical :: time_dept_flag, deltat_correction_flag
@@ -359,12 +360,17 @@ contains
       integer :: bcgk_flag,cgk_flag_pc
       integer :: scount_pulse, sstep
 
+      real(dblprec), dimension(:,:,:), allocatable :: bfield_dip
+      integer :: i_stat
+      real(dblprec) :: energy_dip, edip = 0.0_dblprec
+      integer :: ii,kk
+
       !ms_energy output file
       integer :: file_unit
       character(len=30) :: filn
-      ! !aniso_energy output file
-      ! integer :: file_unit_aniso
-      ! character(len=30) :: filn_aniso
+      !dipolar_energy output file
+      integer :: file_unit_dip
+      character(len=30) :: filn_dip
 
       ! Phase flag indicator (true for sd initial phase; false for sd measurement phase)
       ! Used in order to separate between phases in an adaptive time step environment with spin correlation
@@ -454,11 +460,12 @@ contains
       filn = "ms_energy." // trim(simid) // ".out"
       open(newunit=file_unit, file=trim(filn), status='replace') 
       write(file_unit,'(a6,7(2x,a18))') '#Iter', 'E_total(J)', 'E_demag(J)', 'E_ani(J)', 'E_xc(J)', 'E_xc_pen(J)', 'E_dm(J)', 'E_xc_pen+E_dm(J)'
-      ! !Writing the output file for the anisotropy energies
-      ! filn_aniso = "ms_aniso." // trim(simid) // ".out"
-      ! open(newunit=file_unit_aniso, file=trim(filn_aniso), status='replace') 
-      ! write(file_unit_aniso,'(a8,2x,a18)') '#moment','E_ani(J)/moment'
-      ! flush(file_unit_aniso)
+
+      !Writing the output file for the dipolar energies
+      filn_dip = "ms_dip." // trim(simid) // ".out"
+      open(newunit=file_unit_dip, file=trim(filn_dip), status='replace') 
+      write(file_unit_dip,'(a8,2x,a18)') '#Iter','E_dip(J)'
+      flush(file_unit_dip)
 
       do while (mstep.LE.rstep+nstep) !+1
 
@@ -683,6 +690,30 @@ contains
 
          call timing(0,'Moments       ','OF')
          call timing(0,'Measurement   ','ON')
+         
+         ! Calculate dipolar energy if requested
+         if (ham_inp%do_dip == 1) then
+            allocate(bfield_dip(3,Natom,Mensemble),stat=i_stat)
+            bfield_dip=0.0_dblprec
+            energy_dip=0.0_dblprec
+            call dipole_field_calculation(NA,N1,N2,N3,natom_atomistic,ham_inp%do_dip,Num_macro, &
+                     Mensemble,natom_atomistic,1,cell_index,macro_nlistsize,emomM, &
+                     emomM_macro,ham%Qdip,ham%Qdip_macro,energy_dip,bfield_dip)
+            
+            edip = 0.0_dblprec
+            !$omp parallel do default(shared) schedule(static) private(ii,kk) reduction(+:edip)
+            do ii=1, natom_atomistic
+               do kk=1, Mensemble
+                  edip=edip+update_ene(emomM(1:3,ii,kk),bfield_dip(1:3,ii,kk),0.5_dblprec)
+               end do
+            end do
+            !$omp end parallel do
+            edip = edip * (mub)
+
+
+            write(file_unit_dip,'(i6,1(2x,es18.9))') mstep, edip
+            deallocate(bfield_dip)
+         endif
 
          ! Calculate and write continuum energies (demag,anisotropy) for this step
          call calc_ms_energies(emomM, mstep, nstep, simid, file_unit)   !, file_unit_aniso)
@@ -711,7 +742,7 @@ contains
       
       !close the output file for the multiscale energies
       close(file_unit)
-      ! close(file_unit_aniso)
+      close(file_unit_dip)
 
       ! Measure averages and trajectories
       call measure(Natom,Mensemble,NT,NA,nHam,N1,N2,N3,simid,mstep,emom,emomM,mmom, &
