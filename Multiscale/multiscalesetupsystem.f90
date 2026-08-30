@@ -94,6 +94,7 @@ contains
     use omp_lib
     use Multiscale,      only : natom_atomistic
     use DipoleCommon,    only : setup_qdip
+    use Constants
 
     implicit none
 
@@ -382,11 +383,11 @@ contains
 
          call allocate_dipole(natom_atomistic, 1)
 
-         call setup_qdip(natom_atomistic, coord(:,1:natom_atomistic), alat, &
+         call setup_qdip(natom_atomistic, coord(:,1:natom_atomistic), alat*angstrom, &
             ham%Qdip, simid, ham_inp%print_dip_tensor)
 
-         write(*,'(a,4(i0,1x))') 'Dipolar tensor dimensions: ', size(ham%Qdip,1), size(ham%Qdip,2), &
-                                                               size(ham%Qdip,3), size(ham%Qdip,4)
+         write(*,'(a,4(i0,1x))') '(setup_multiscale_system) Dipolar tensor dimensions: ',  &
+                  size(ham%Qdip,1), size(ham%Qdip,2),size(ham%Qdip,3), size(ham%Qdip,4)
 
       else if (ham_inp%do_dip > 1) then
          error stop 'Multiscale setup currently supports only do_dip=1'
