@@ -65,13 +65,15 @@ contains
 
       !  Set up dipole-tensor for the brute force calculation
       if(do_dip==1) then
-         write(*,'(2x,a)',advance='no') "Set up dipole-dipole matrix"
+         write(*,'(2x,a)',advance='no') "Set up dipole-dipole matrix "
          call allocate_dipole(Natom,1)
 
          if (read_dipole=='Y') then
             call read_qdip(Natom,Qdip,qdip_files)
          else
             call setup_qdip(Natom, coord, alat, Qdip,simid,print_dip_tensor)
+            write(*,'(a,4(i0,1x))') '(setup_hamiltonian) Dipolar tensor dimensions: ', &
+                     size(Qdip,1), size(Qdip,2),size(Qdip,3), size(Qdip,4)
          endif
          write(*,'(a)') '  done'
       ! Setup dipole-tensor for the macro-cell calculation
