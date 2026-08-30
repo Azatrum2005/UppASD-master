@@ -118,16 +118,18 @@ contains
 
         if (ms_demag == 'Y') then
             msd%enabled = .true.
+            write(*,*) 'Demag field will be computed.'
             ! return
         end if
 
         if (ms_demag_output == 'Y') then
             msd%output_enabled = .true.
+            write(*,*) 'Continuum energies will be computed.'
             ! return
         end if
 
         if (.not.(ms_demag == 'Y' .or. ms_demag_output == 'Y')) then
-            write(*,*) 'MultiscaleDemag: ms_demag and ms_demag_output are both disabled. No demag will be computed.'
+            write(*,*) 'MultiscaleDemag: ms_demag and ms_demag_output are disabled. Continuum energies and demag field will not be computed.'
             return
         end if
 
