@@ -204,13 +204,13 @@ contains
          if (start_atom <= actual_stop_atom) then
             !$omp parallel do default(shared) private(icell,kk) reduction(-:energy) collapse(2) schedule(static)
             do kk=1, Mensemble
-               do icell=1, Num_macro
+               do ii=start_atom, actual_stop_atom
                   ! Macro cell dipolar field
-                  call macro_dipolar_field(icell,kk,bfield(:,icell,kk),actual_natom,Num_macro,      &
+                  call macro_dipolar_field(ii,kk,bfield(:,ii,kk),actual_natom,Num_macro,      &
                      Mensemble,cell_index,emomM_macro,Qdip_macro)
                   ! Calculate the contribution to the energy comming from the macrocell treatment of the
                   ! dipole-dipole interaction
-                  call calc_macro_energy(icell,kk,bfield(:,icell,kk),energy,actual_natom,Num_macro,Mensemble, &
+                  call calc_macro_energy(ii,kk,bfield(:,ii,kk),energy,actual_natom,Num_macro,Mensemble, &
                      cell_index,emomM_macro,macro_nlistsize)
                enddo
             enddo
