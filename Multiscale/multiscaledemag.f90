@@ -121,7 +121,7 @@ contains
         integer :: file_unit_N
         character(len=30) :: filn_N
 
-        write(*,*) 'unitcell%nrOfAtoms: ', unitCell%nrOfAtoms, ' unitcell%size: ', unitCell%size, ' unitcell volume: ', unitCell%size(1)*unitCell%size(2)*unitCell%size(3)
+        write(*,*) 'unitcell%nrOfAtoms: ', unitCell%nrOfAtoms, ' unitcell%size: ', unitCell%size
         if (unitCell%nrOfAtoms <= 0) then
             write(*,*) 'ERROR: MultiscaleDemag requires a non-empty unit cell. Please check your multiscale.conf file.'
             stop
@@ -158,7 +158,12 @@ contains
 
         !unit cell information
         msd%unitcell_atoms = unitCell%nrOfAtoms
-        msd%unitcell_volume = unitCell%size(1)*unitCell%size(2)*unitCell%size(3)
+        if (nzn == 1) then
+            msd%unitcell_volume = unitCell%size(1)*unitCell%size(2)
+        else
+            msd%unitcell_volume = unitCell%size(1)*unitCell%size(2)*unitCell%size(3)
+        end if
+        write(*,*) ' unitcell_volume: ', msd%unitcell_volume
 
         !Warn if standard do_dip is also active
         if (ham_inp%do_dip > 0) then
