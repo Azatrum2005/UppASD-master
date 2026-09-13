@@ -576,10 +576,10 @@ contains
         end if
 
         msd%E_demag = E_demag_loc * (mub**2 / 1.0d-30)
-        msd%E_ani   = E_ani_loc * mub 
-        msd%E_xc    = E_xc_loc * mub 
-        msd%E_xc_pen = E_xc_pen_loc * mub
-        msd%E_dm    = E_dm_loc * mub
+        msd%E_ani   = E_ani_loc * mub * msd%volume
+        msd%E_xc    = E_xc_loc * mub * msd%volume
+        msd%E_xc_pen = E_xc_pen_loc * mub * msd%volume
+        msd%E_dm    = E_dm_loc * mub * msd%volume
         msd%E_total = msd%E_demag + msd%E_ani + msd%E_xc_pen + msd%E_dm
 
         ! Write to ms_energy.<simid>.out
