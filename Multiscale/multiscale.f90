@@ -154,10 +154,10 @@ contains
 !                               finiteDiffIndices,size(setup%positions, 2))
     write(*,*) 'DEBUG: size(setup%positions,2)  ', size(setup%positions,2)
     write(*,*) 'DEBUG: size(finiteDiffIndices)   ', size(finiteDiffIndices,1), size(finiteDiffIndices,2), size(finiteDiffIndices,3)
-    call setup_multiscale_demag( mesh%nrOfBoxes(1),      mesh%nrOfBoxes(2),      mesh%nrOfBoxes(3),      &
-                                 mesh%boxSize(1),         mesh%boxSize(2),         mesh%boxSize(3),         &
-                                 mesh%nrOfGridPoints(1),  mesh%nrOfGridPoints(2),  mesh%nrOfGridPoints(3),  &
-                                 finiteDiffIndices,       size(setup%positions, 2))
+    call setup_multiscale_demag( mesh%nrOfBoxes(1), mesh%nrOfBoxes(2), mesh%nrOfBoxes(3),&
+                                 mesh%boxSize(1), mesh%boxSize(2), mesh%boxSize(3),&
+                                 mesh%nrOfGridPoints(1), mesh%nrOfGridPoints(2), mesh%nrOfGridPoints(3),&
+                                 finiteDiffIndices, size(setup%positions, 2), options%unitCell)
 
     deallocate(finiteDiffIndices)
 
