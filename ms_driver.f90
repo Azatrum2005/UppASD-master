@@ -341,12 +341,13 @@ contains
       !use InducedMoments,        only : renorm_ncoup_ind
       use MicroWaveField
       use SimulationData,        only : bn, rstep, mstep
-      use Math_functions, only : f_logstep
+      use Math_functions,        only : f_logstep
       use HamiltonianData
       use CalculateFields
       use AutoCorrelation,       only : autocorr_sample, do_autocorr
       use prn_trajectories
       use HamiltonianActions
+      use HamiltonianData,          only: ham
       use OptimizationRoutines
       use AdaptiveTimeStepping
       use Multiscale,                 only : natom_atomistic  
@@ -455,6 +456,10 @@ contains
       !------------------------------------------------------------------------------
       ! End of initial KMC wrapper
       !------------------------------------------------------------------------------
+
+      write(*,*) 'DEBUG: kaniso: ', ham%kaniso(1,1), ham%kaniso(2,1), size(ham%kaniso, dim=1), size(ham%kaniso, dim=2)
+      write(*,*) "   ncoup:", ham%ncoup(1, ham%aHam(1), 1), ham%ncoup(2, ham%aHam(1), 1), ham%ncoup(3, ham%aHam(1), 1), ham%ncoup(4, ham%aHam(1), 1), size(ham%ncoup, dim=1), size(ham%ncoup, dim=2)
+      write(*,*) "   dm_vect:", ham%dm_vect(1,1,ham%aHam(1)), ham%dm_vect(1,2,ham%aHam(1)) ,ham%dm_vect(1,3,ham%aHam(1)), "/", ham%dm_vect(2,1,ham%aHam(1)), ham%dm_vect(2,2,ham%aHam(1)) ,ham%dm_vect(2,3,ham%aHam(1)), "/", ham%dm_vect(3,1,ham%aHam(1)), ham%dm_vect(3,2,ham%aHam(1)) ,ham%dm_vect(3,3,ham%aHam(1))
 
       !Writing the output file for the multiscale energies
       filn = "ms_energy." // trim(simid) // ".out"
