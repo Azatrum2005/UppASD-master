@@ -46,6 +46,10 @@ module MultiscaleDemag
         ! finiteDiffIndices has been deallocated in the setup phase.
         ! integer, allocatable :: active_node(:,:,:)   ! (nxc, nyc, nzc)
 
+        !unitCell information
+        real(dblprec) :: unitcell_atoms
+        real(dblprec) :: unitcell_volume
+
         ! active_cell(i,j,k) = 1 if all surrounding corner nodes are real, 0 otherwise.
         ! Dimensioned over the cell grid (nxc, nyc, nzc).
         integer, allocatable :: active_cell(:,:,:)  ! (nxc, nyc, nzc)
@@ -95,8 +99,11 @@ contains
     !                             < 0  ghost/interpolation node
     !                             = 0  empty cell
     ! @param[in] Natom       Total number of atoms/nodes in the system
-    subroutine setup_multiscale_demag(nxc, nyc, nzc, dx, dy, dz, nxn, nyn, nzn, fd_indices, Natom)
+    ! @param[in] unitCell    Unit cell information
+    subroutine setup_multiscale_demag(nxc, nyc, nzc, dx, dy, dz, nxn, nyn, nzn, fd_indices, Natom, unitCell)
         use InputData, only: ms_demag, ms_demag_output, far_threshold, ham_inp
+        use AtomGenerator, only: AtomCell
+        type(AtomCell), intent(in) :: unitCell
         integer, intent(in) :: nxc, nyc, nzc
         real(dblprec), intent(in) :: dx, dy, dz
         integer, intent(in) :: nxn, nyn, nzn
@@ -113,6 +120,12 @@ contains
         ! Demagnetization tensor output file
         integer :: file_unit_N
         character(len=30) :: filn_N
+
+        write(*,*) 'unitcell%nrOfAtoms: ', unitCell%nrOfAtoms, ' unitcell%size: ', unitCell%size, ' unitcell volume: ', unitCell%size(1)*unitCell%size(2)*unitCell%size(3)
+        if (unitCell%nrOfAtoms <= 0) then
+            write(*,*) 'ERROR: MultiscaleDemag requires a non-empty unit cell. Please check your multiscale.conf file.'
+            stop
+        end if
 
         write(*,*) 'DEBUG: setup_multiscale_demag called. ms_demag is: ', ms_demag
 
@@ -142,6 +155,10 @@ contains
 
         ! Node grid
         msd%nxn = nxn;  msd%nyn = nyn;  msd%nzn = nzn
+
+        !unit cell information
+        msd%unitcell_atoms = unitCell%nrOfAtoms
+        msd%unitcell_volume = unitCell%size(1)*unitCell%size(2)*unitCell%size(3)
 
         !Warn if standard do_dip is also active
         if (ham_inp%do_dip > 0) then
@@ -296,8 +313,8 @@ contains
                         end do
                     end do
                     if (cnt > 0) then
-                        !average moment of surrounding nodes(/cnt), then divide by cell volume to get magnetization density M
-                        msd%Mgrid(1:3, i, j, k) = m_avg / (real(cnt, dblprec) * msd%volume)
+                        !average moment of surrounding nodes(/cnt), then multiply by atom density to get magnetization density M     (cell volume)
+                        msd%Mgrid(1:3, i, j, k) = (m_avg / (real(cnt, dblprec)))*(msd%unitcell_atoms/msd%unitcell_volume) ! * msd%volume
                         ! write(*,*) 'DEBUG: ', cnt
                     end if
                 end do
