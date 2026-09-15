@@ -305,7 +305,7 @@ implicit none
         
         atomIndexFrom = abs(meshIndices(fromIndex(1), fromIndex(2), fromIndex(3)))
         atomNeighIndex = abs(meshIndices(neighIndex(1), neighIndex(2), neighIndex(3)))
-        exchangeCoef = continuous_exchange_coef(inDimension) / mesh%boxSize(inDimension)**2  !for nodes that are not at the boundary, the exchange coefficient is halved.
+        exchangeCoef = continuous_exchange_coef(inDimension) / mesh%boxSize(inDimension)**2  !for nodes that are not at the boundary, the exchange coefficient kept the same.
         if (wrapped) then
            link_continuum_dm = &
                 -continuum_dm(:,inDimension) / mesh%boxSize(inDimension)
